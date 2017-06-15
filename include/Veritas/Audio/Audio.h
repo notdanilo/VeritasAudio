@@ -1,0 +1,10 @@
+#pragma once
+
+#include "AudioSource.h"
+#include "AudioSink.h"
+#include "AudioCapture.h"
+#include "AudioPlayback.h"
+#include "AudioNode.h"
+#include "ValueNode.h"
+#include "SineGenerator.h"
+#include "Oscilloscope.h"
