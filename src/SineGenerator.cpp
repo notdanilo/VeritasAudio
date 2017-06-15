@@ -9,9 +9,10 @@ using namespace Math;
 
 SineGenerator::SineGenerator(uint32 framerate, FORMAT format)
     : AudioSource(framerate, format)
+    , AudioSink(framerate, format)
     , time(0)
 {
-    frequencySource = new ValueNode(440.0f);
+    connect(ValueNode(440.0));
 }
 
 #include <iostream>
@@ -22,16 +23,12 @@ void SineGenerator::read(uint8 *data, uint32 bytes) {
     uint32 frames = bytes / sizeof(float32);
 
     float32 frequency[frames];
-    frequencySource->read((uint8*) &frequency, sizeof(frequency));
+    getSource().read((uint8*) &frequency, sizeof(frequency));
 
-    float32 framerate = getFramerate();
+    float32 framerate = AudioSink::getFramerate();
     float32 fraction = 1.0f / framerate;
     for (uint32 i = 0; i < frames; i++) {
         floats[i] = sin(frequency[i] * TAU * time / framerate);
         time++;
     }
-}
-
-void SineGenerator::frequency(AudioSource &frequency) {
-    this->frequencySource = &frequency;
 }

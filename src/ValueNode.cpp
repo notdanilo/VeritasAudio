@@ -15,6 +15,14 @@ ValueNode::ValueNode(float32 value)
     memcpy(this->value, &value, bytes);
 }
 
+ValueNode::ValueNode(const ValueNode &node)
+    : AudioSource(1, FLOAT32)
+    , bytes(node.bytes)
+{
+    value = malloc(bytes);
+    memcpy(value, node.value, bytes);
+}
+
 ValueNode::~ValueNode() {
     free(value);
 }

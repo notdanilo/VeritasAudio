@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Utils/Utils.h"
+
 #include "AudioSource.h"
 #include "AudioSink.h"
 #include "AudioCapture.h"

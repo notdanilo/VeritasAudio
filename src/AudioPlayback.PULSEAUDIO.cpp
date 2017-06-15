@@ -28,9 +28,8 @@ AudioPlayback::AudioPlayback(uint32 framerate, uint8 channels, FORMAT iformat)
     : AudioSink(framerate, iformat)
     , channels(channels)
     , framerate(framerate)
-    , isDefaultSource(true)
-    , source(new ValueNode(0.0f))
 {
+    connect(ValueNode(0.0f));
     pa_sample_format_t format = PA_SAMPLE_INVALID;
     switch (iformat) {
         case UINT8: format = PA_SAMPLE_U8; break;
@@ -112,17 +111,8 @@ AudioPlayback::AudioPlayback(uint32 framerate, uint8 channels, FORMAT iformat)
 }
 
 AudioPlayback::~AudioPlayback() {
-    if (isDefaultSource) delete source;
-}
-
-void AudioPlayback::connect(AudioSource &source) {
-    if (isDefaultSource) {
-        isDefaultSource = false;
-        delete this->source;
-    }
-    this->source = &source;
 }
 
 void AudioPlayback::read(uint8 *buffer, uint32 bytes) {
-    source->read(buffer, bytes);
+    getSource().read(buffer, bytes);
 }

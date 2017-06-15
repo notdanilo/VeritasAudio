@@ -10,12 +10,8 @@ namespace Veritas {
             public:
                 Oscilloscope(GPU::FrameBuffer &framebuffer, uint32 rate, FORMAT format);
 
-                void connect(AudioSource& source);
-
                 void run();
             private:
-                AudioSource* source;
-
                 GPU::Programs::ClearProgram cp;
                 GPU::Programs::FragmentProgram fp;
                 GPU::Programs::VertexProgram vp;
