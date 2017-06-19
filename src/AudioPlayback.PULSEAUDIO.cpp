@@ -118,11 +118,13 @@ AudioPlayback::AudioPlayback(float32 timeSpan, uint32 framerate, uint8 channels,
 
 AudioPlayback::~AudioPlayback() {
     pa_stream_cork(stream, 1, stream_success_cb, mainloop);
+
+    pa_threaded_mainloop_stop(mainloop);
+
     pa_stream_disconnect(stream);
 
     pa_context_disconnect(context);
 
-    pa_threaded_mainloop_stop(mainloop);
     pa_threaded_mainloop_free(mainloop);
 }
 
