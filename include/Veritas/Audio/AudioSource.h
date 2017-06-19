@@ -5,7 +5,7 @@
 
 namespace Veritas {
     namespace Audio {
-        class AudioSource : public AudioNode {
+        class AudioSource : public virtual AudioNode {
             public:
                 AudioSource(uint32 framerate, FORMAT format);
                 virtual ~AudioSource() = default;

@@ -14,25 +14,24 @@ static void stream_success_cb(pa_stream *stream, int success, void *userdata) { 
 static void stream_callback(pa_stream *stream, size_t bytes, void *userdata) {
     AudioCapture *capture = (AudioCapture*) userdata;
 
-    const uint8* data = 0;
+    uint8* data = 0;
     size_t size;
     pa_stream_peek((pa_stream*) stream, (const void**) &data, &size);
 
     capture->mtx.lock();
-    for (int i = 0; i < size; i++) capture->buffer.push(data[i]);
-
-//    assert(capture->buffer.size() < bytes * 100); // use a circular buffer instead
-
+    assert(capture->buffer.write(data, size) == size);
     capture->mtx.unlock();
 
     pa_stream_drop((pa_stream*) stream);
 }
 
 AudioCapture::AudioCapture(uint32 framerate, uint8 channels, FORMAT iformat)
-    : AudioSource(framerate, iformat)
+    : AudioNode(framerate, iformat)
+    , AudioSource(framerate, iformat)
     , channels(channels)
     , framerate(framerate)
 {
+    setTimeSpan(getTimeSpan());
     pa_sample_format_t format = PA_SAMPLE_INVALID;
     switch (iformat) {
         case UINT8: format = PA_SAMPLE_U8; break;
@@ -112,22 +111,20 @@ AudioCapture::AudioCapture(uint32 framerate, uint8 channels, FORMAT iformat)
     pa_stream_cork(stream, 0, stream_success_cb, mainloop);
 }
 
-AudioCapture::~AudioCapture() {
-}
+AudioCapture::~AudioCapture() {}
 
 void AudioCapture::read(uint8 *buffer, uint32 bytes) {
     for (;;) {
         mtx.lock();
-        if (this->buffer.size() >= bytes) break;
+        if (this->buffer.getOccupied() > bytes) break;
         mtx.unlock();
     }
 
-    uint8 *data = (uint8*) buffer;
-
-    assert(this->buffer.size() >= bytes);
-    for (int i = 0; i < bytes; i++) {
-        data[i] = this->buffer.front();
-        this->buffer.pop();
-    }
+    this->buffer.read(buffer, bytes);
     mtx.unlock();
+}
+
+void AudioCapture::setTimeSpan(float32 timeSpan) {
+    AudioNode::setTimeSpan(timeSpan);
+    buffer.setSize(2.0f * timeSpan * getFramerate() * getBytesPerFrame());
 }

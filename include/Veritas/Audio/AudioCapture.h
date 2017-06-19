@@ -2,6 +2,7 @@
 
 #include <Veritas/Definitions/Definitions.h>
 #include <Veritas/Audio/AudioSource.h>
+#include <Veritas/Audio/Utils/CircularBuffer.h>
 
 #include <queue>
 #include <mutex>
@@ -14,8 +15,9 @@ namespace Veritas {
                 ~AudioCapture();
 
                 void read(uint8* buffer, uint32 bytes);
+                void setTimeSpan(float32 timeSpan);
 
-                std::queue<uint8> buffer;
+                Audio::Utils::CircularBuffer buffer;
                 std::mutex mtx;
             private:
                 uint32 framerate;

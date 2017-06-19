@@ -24,8 +24,13 @@ void stream_callback(pa_stream *stream, size_t bytes, void *userdata) {
     pa_stream_write((pa_stream*) stream, buffer, bytes, NULL, 0LL, PA_SEEK_RELATIVE);
 }
 
+void AudioPlayback::setTimeSpan(float32 timeSpan) {
+    AudioNode::setTimeSpan(timeSpan);
+}
+
 AudioPlayback::AudioPlayback(uint32 framerate, uint8 channels, FORMAT iformat)
     : AudioSink(framerate, iformat)
+    , AudioNode(framerate, iformat)
     , channels(channels)
     , framerate(framerate)
 {

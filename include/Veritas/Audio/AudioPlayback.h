@@ -13,6 +13,8 @@ namespace Veritas {
                 ~AudioPlayback();
 
                 void read(uint8 *buffer, uint32 bytes);
+
+                void setTimeSpan(float32 timeSpan);
             private:
                 uint32 framerate;
                 uint8 channels;

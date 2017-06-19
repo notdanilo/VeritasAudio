@@ -8,7 +8,8 @@ using namespace Veritas;
 using namespace Audio;
 
 ValueNode::ValueNode(float32 value)
-    : AudioSource(1, FLOAT32)
+    : AudioNode(1, FLOAT32)
+    , AudioSource(1, FLOAT32)
     , bytes(sizeof(value))
 {
     this->value = malloc(bytes);
@@ -16,7 +17,8 @@ ValueNode::ValueNode(float32 value)
 }
 
 ValueNode::ValueNode(const ValueNode &node)
-    : AudioSource(1, FLOAT32)
+    : AudioNode(node)
+    , AudioSource(node)
     , bytes(node.bytes)
 {
     value = malloc(bytes);
