@@ -3,34 +3,35 @@
 
 #include <pulse/pulseaudio.h>
 
+#include <iostream>
+
 using namespace Veritas;
 using namespace Audio;
-
-#include <iostream>
 
 static void context_state_cb(pa_context* context, void* mainloop) { pa_threaded_mainloop_signal((pa_threaded_mainloop*) mainloop, 0); }
 static void stream_state_cb(pa_stream *s, void *mainloop) { pa_threaded_mainloop_signal((pa_threaded_mainloop*) mainloop, 0); }
 static void stream_success_cb(pa_stream *stream, int success, void *userdata) { return; }
+static void stream_underflow_cb(pa_stream *stream, void *userdata) { return ; }
 
-void stream_callback(pa_stream *stream, size_t bytes, void *userdata) {
+void stream_callback(pa_stream *stream, size_t requestedBytes, void *userdata) {
     AudioPlayback *ao = (AudioPlayback*) userdata;
 
     uint8* buffer = NULL;
 
-    pa_stream_begin_write((pa_stream*) stream, (void**) &buffer, &bytes);
+    while (requestedBytes) {
+        size_t availableBytes = requestedBytes;
+        pa_stream_begin_write(stream, (void**) &buffer, &availableBytes);
+        requestedBytes -= availableBytes;
 
-    ao->read(buffer, bytes);
+        ao->read(buffer, availableBytes);
 
-    pa_stream_write((pa_stream*) stream, buffer, bytes, NULL, 0LL, PA_SEEK_RELATIVE);
+        pa_stream_write(stream, buffer, availableBytes, NULL, 0LL, PA_SEEK_RELATIVE);
+    }
 }
 
-void AudioPlayback::setTimeSpan(float32 timeSpan) {
-    AudioNode::setTimeSpan(timeSpan);
-}
-
-AudioPlayback::AudioPlayback(uint32 framerate, uint8 channels, FORMAT iformat)
+AudioPlayback::AudioPlayback(float32 timeSpan, uint32 framerate, uint8 channels, FORMAT iformat)
     : AudioSink(framerate, iformat)
-    , AudioNode(framerate, iformat)
+    , AudioNode(timeSpan, framerate, iformat)
     , channels(channels)
     , framerate(framerate)
 {
@@ -48,9 +49,9 @@ AudioPlayback::AudioPlayback(uint32 framerate, uint8 channels, FORMAT iformat)
     }
 
     // Get a mainloop and its context
-    pa_threaded_mainloop* mainloop = pa_threaded_mainloop_new();
+    mainloop = pa_threaded_mainloop_new();
     pa_mainloop_api *mainloop_api = pa_threaded_mainloop_get_api(mainloop);
-    pa_context *context = pa_context_new(mainloop_api, "Playback");
+    context = pa_context_new(mainloop_api, "Playback");
 
     // Set a callback so we can wait for the context to be ready
     pa_context_set_state_callback(context, &context_state_cb, mainloop);
@@ -72,7 +73,6 @@ AudioPlayback::AudioPlayback(uint32 framerate, uint8 channels, FORMAT iformat)
     }
 
     // Create a playback stream
-    pa_sample_spec sample_specifications;
     sample_specifications.format = format;
     sample_specifications.rate = framerate;
     sample_specifications.channels = channels;
@@ -80,11 +80,12 @@ AudioPlayback::AudioPlayback(uint32 framerate, uint8 channels, FORMAT iformat)
     pa_channel_map map;
     pa_channel_map_init_auto(&map, channels, PA_CHANNEL_MAP_DEFAULT);
 
-    pa_stream* stream = pa_stream_new(context, "Sink", &sample_specifications, &map);
+    stream = pa_stream_new(context, "Sink", &sample_specifications, &map);
     pa_stream_set_state_callback(stream, stream_state_cb, mainloop);
     pa_stream_set_write_callback(stream, stream_callback, this);
+    pa_stream_set_underflow_callback(stream, stream_underflow_cb, NULL);
 
-    uint32 bytes = pa_usec_to_bytes(0.025 * 1000000, &sample_specifications);
+    uint32 bytes = pa_usec_to_bytes(getTimeSpan() * 1000000, &sample_specifications);
 
     // recommended settings, i.e. server uses sensible values
     pa_buffer_attr buffer_attr;
@@ -116,8 +117,31 @@ AudioPlayback::AudioPlayback(uint32 framerate, uint8 channels, FORMAT iformat)
 }
 
 AudioPlayback::~AudioPlayback() {
+    pa_stream_cork(stream, 1, stream_success_cb, mainloop);
+    pa_stream_disconnect(stream);
+
+    pa_context_disconnect(context);
+
+    pa_threaded_mainloop_stop(mainloop);
+    pa_threaded_mainloop_free(mainloop);
 }
 
 void AudioPlayback::read(uint8 *buffer, uint32 bytes) {
     getSource().read(buffer, bytes);
+}
+
+void AudioPlayback::setTimeSpan(float32 timeSpan) {
+    AudioNode::setTimeSpan(timeSpan);
+
+    uint32 bytes = pa_usec_to_bytes(getTimeSpan() * 1000000, &sample_specifications);
+
+    // recommended settings, i.e. server uses sensible values
+    pa_buffer_attr buffer_attr;
+    buffer_attr.maxlength = (uint32_t) -1;
+    buffer_attr.prebuf = (uint32_t) -1;
+    buffer_attr.minreq = (uint32_t) -1;
+    buffer_attr.fragsize = (uint32_t) -1;
+    buffer_attr.tlength = bytes;
+
+    pa_stream_set_buffer_attr(stream, &buffer_attr, stream_success_cb, 0);
 }

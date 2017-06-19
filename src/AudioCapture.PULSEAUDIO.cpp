@@ -1,21 +1,26 @@
 #include <Veritas/Audio/AudioCapture.h>
+#include <Veritas/Math/Math.h>
 
 #include <pulse/pulseaudio.h>
 
 using namespace Veritas;
 using namespace Audio;
+using namespace Math;
 
 #include <iostream>
 
 static void context_state_cb(pa_context* context, void* mainloop) { pa_threaded_mainloop_signal((pa_threaded_mainloop*) mainloop, 0); }
 static void stream_state_cb(pa_stream *s, void *mainloop) { pa_threaded_mainloop_signal((pa_threaded_mainloop*) mainloop, 0); }
 static void stream_success_cb(pa_stream *stream, int success, void *userdata) { return; }
+static void stream_underflow_cb(pa_stream *stream, void *userdata) {
+    assert(!"Underflow!");
+}
 
 static void stream_callback(pa_stream *stream, size_t bytes, void *userdata) {
     AudioCapture *capture = (AudioCapture*) userdata;
 
     uint8* data = 0;
-    size_t size;
+    size_t size = bytes;
     pa_stream_peek((pa_stream*) stream, (const void**) &data, &size);
 
     capture->mtx.lock();
@@ -25,13 +30,12 @@ static void stream_callback(pa_stream *stream, size_t bytes, void *userdata) {
     pa_stream_drop((pa_stream*) stream);
 }
 
-AudioCapture::AudioCapture(uint32 framerate, uint8 channels, FORMAT iformat)
-    : AudioNode(framerate, iformat)
+AudioCapture::AudioCapture(float32 timeSpan, uint32 framerate, uint8 channels, FORMAT iformat)
+    : AudioNode(timeSpan, framerate, iformat)
     , AudioSource(framerate, iformat)
     , channels(channels)
     , framerate(framerate)
 {
-    setTimeSpan(getTimeSpan());
     pa_sample_format_t format = PA_SAMPLE_INVALID;
     switch (iformat) {
         case UINT8: format = PA_SAMPLE_U8; break;
@@ -45,9 +49,9 @@ AudioCapture::AudioCapture(uint32 framerate, uint8 channels, FORMAT iformat)
     }
 
     // Get a mainloop and its context
-    pa_threaded_mainloop* mainloop = pa_threaded_mainloop_new();
+    mainloop = pa_threaded_mainloop_new();
     pa_mainloop_api *mainloop_api = pa_threaded_mainloop_get_api(mainloop);
-    pa_context *context = pa_context_new(mainloop_api, "pcm-playback");
+    context = pa_context_new(mainloop_api, "Capture");
 
     // Set a callback so we can wait for the context to be ready
     pa_context_set_state_callback(context, &context_state_cb, mainloop);
@@ -68,7 +72,6 @@ AudioCapture::AudioCapture(uint32 framerate, uint8 channels, FORMAT iformat)
     }
 
     // Create a playback stream
-    pa_sample_spec sample_specifications;
     sample_specifications.format = format;
     sample_specifications.rate = framerate;
     sample_specifications.channels = channels;
@@ -76,12 +79,13 @@ AudioCapture::AudioCapture(uint32 framerate, uint8 channels, FORMAT iformat)
     pa_channel_map map;
     pa_channel_map_init_auto(&map, channels, PA_CHANNEL_MAP_DEFAULT);
 
-    pa_stream* stream = pa_stream_new(context, "Source", &sample_specifications, &map);
+    stream = pa_stream_new(context, "Source", &sample_specifications, &map);
     pa_stream_set_state_callback(stream, stream_state_cb, mainloop);
     pa_stream_set_read_callback(stream, stream_callback, this);
+    pa_stream_set_underflow_callback(stream, stream_underflow_cb, NULL);
 
     // recommended settings, i.e. server uses sensible values
-    uint32 bytes = pa_usec_to_bytes(0.025 * 1000000, &sample_specifications);
+    uint32 bytes = pa_usec_to_bytes(getTimeSpan() * 1000000, &sample_specifications);
 
     pa_buffer_attr buffer_attr;
     buffer_attr.maxlength = (uint32_t) -1;
@@ -107,24 +111,49 @@ AudioCapture::AudioCapture(uint32 framerate, uint8 channels, FORMAT iformat)
 
     pa_threaded_mainloop_unlock(mainloop);
 
+    setTimeSpan(getTimeSpan());
+
     // Uncork the stream so it will start playing
     pa_stream_cork(stream, 0, stream_success_cb, mainloop);
 }
 
-AudioCapture::~AudioCapture() {}
+AudioCapture::~AudioCapture() {
+    pa_stream_cork(stream, 1, stream_success_cb, mainloop);
+    pa_stream_disconnect(stream);
 
-void AudioCapture::read(uint8 *buffer, uint32 bytes) {
-    for (;;) {
+    pa_context_disconnect(context);
+
+    pa_threaded_mainloop_stop(mainloop);
+    pa_threaded_mainloop_free(mainloop);
+}
+
+void AudioCapture::read(uint8 *buffer, uint32 requestedBytes) {
+    uint32 offset = 0;
+    while (requestedBytes) {
         mtx.lock();
-        if (this->buffer.getOccupied() > bytes) break;
+        uint32 availableBytes = min(requestedBytes, this->buffer.getOccupied());
+
+        this->buffer.read(buffer + offset, availableBytes);
+
+        offset += availableBytes;
+        requestedBytes -= availableBytes;
         mtx.unlock();
     }
-
-    this->buffer.read(buffer, bytes);
-    mtx.unlock();
 }
 
 void AudioCapture::setTimeSpan(float32 timeSpan) {
     AudioNode::setTimeSpan(timeSpan);
     buffer.setSize(2.0f * timeSpan * getFramerate() * getBytesPerFrame());
+
+    uint32 bytes = pa_usec_to_bytes(getTimeSpan() * 1000000, &sample_specifications);
+
+    // recommended settings, i.e. server uses sensible values
+    pa_buffer_attr buffer_attr;
+    buffer_attr.maxlength = (uint32_t) -1;
+    buffer_attr.prebuf = (uint32_t) -1;
+    buffer_attr.minreq = (uint32_t) -1;
+    buffer_attr.tlength = (uint32_t) -1;
+    buffer_attr.fragsize = bytes;
+
+    pa_stream_set_buffer_attr(stream, &buffer_attr, stream_success_cb, 0);
 }

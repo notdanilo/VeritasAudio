@@ -3,10 +3,11 @@
 using namespace Veritas;
 using namespace Audio;
 
-AudioNode::AudioNode(uint32 framerate, FORMAT format)
+AudioNode::AudioNode(uint32 framerate, FORMAT format) : AudioNode(1.0f, framerate, format) {}
+AudioNode::AudioNode(float32 timeSpan, uint32 framerate, FORMAT format)
     : framerate(framerate)
     , format(format)
-    , timeSpan(1.0f)
+    , timeSpan(timeSpan)
 {}
 
 uint32 AudioNode::getFramerate() const { return framerate; }
