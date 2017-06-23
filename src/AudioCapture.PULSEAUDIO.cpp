@@ -30,11 +30,15 @@ static void stream_callback(pa_stream *stream, size_t bytes, void *userdata) {
     pa_stream_drop((pa_stream*) stream);
 }
 
-AudioCapture::AudioCapture(float32 timeSpan, uint32 framerate, uint8 channels, FORMAT iformat)
-    : AudioNode(timeSpan, framerate, iformat)
-    , AudioSource(framerate, iformat)
-    , channels(channels)
-    , framerate(framerate)
+AudioCapture::AudioCapture(uint32 framerate, FORMAT format, uint8 channels, float32 timeSpan)
+    : AudioCapture(0, framerate, format, channels, timeSpan)
+{}
+AudioCapture::AudioCapture(const Data::String &deviceName, uint32 framerate, FORMAT format, uint8 channels, float32 timeSpan)
+    : AudioCapture((const char*) deviceName.getBuffer().getData(), framerate, format, channels, timeSpan)
+{}
+AudioCapture::AudioCapture(const char* name, uint32 framerate, FORMAT iformat, uint8 channels, float32 timeSpan)
+    : AudioNode(framerate, iformat, channels, timeSpan)
+    , AudioSource(framerate, iformat, channels, timeSpan)
 {
     pa_sample_format_t format = PA_SAMPLE_INVALID;
     switch (iformat) {
@@ -99,7 +103,7 @@ AudioCapture::AudioCapture(float32 timeSpan, uint32 framerate, uint8 channels, F
     stream_flags = (pa_stream_flags_t)(PA_STREAM_START_CORKED | PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_NOT_MONOTONIC | PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_ADJUST_LATENCY);
 
     // Connect stream to the default audio output sink
-    assert(pa_stream_connect_record(stream, NULL, &buffer_attr, stream_flags) == 0);
+    assert(pa_stream_connect_record(stream, name, &buffer_attr, stream_flags) == 0);
 
     // Wait for the stream to be ready
     for(;;) {

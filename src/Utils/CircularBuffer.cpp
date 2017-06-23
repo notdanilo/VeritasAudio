@@ -71,6 +71,12 @@ uint32 CircularBuffer::read(uint8 *data, uint32 ammount) {
     return ammount + remaining;
 }
 
+uint32 CircularBuffer::free(uint32 ammount) {
+    if (ammount > getOccupied()) ammount = getOccupied();
+    occupied -= ammount;
+    return ammount;
+}
+
 uint32 CircularBuffer::getReadPosition() const {
     if (getPosition() >= getOccupied())
         return getPosition() - getOccupied();
@@ -83,7 +89,7 @@ const CircularBuffer::Parts CircularBuffer::read(uint32 size) {
 
     Parts parts;
 
-    if (size < getSize() - getReadPosition()) {
+    if (size <= getSize() - getReadPosition()) {
         parts.push_back(Part(getData() + getReadPosition(), size));
     } else {
         uint32 partialSize = getSize() - getReadPosition();
@@ -102,7 +108,7 @@ CircularBuffer::Parts CircularBuffer::write(uint32 size) {
 
     Parts parts;
 
-    if (size < getSize() - getPosition()) {
+    if (size <= getSize() - getPosition()) {
         parts.push_back(Part(getData() + getPosition(), size));
     } else {
         uint32 partialSize = getSize() - getPosition();

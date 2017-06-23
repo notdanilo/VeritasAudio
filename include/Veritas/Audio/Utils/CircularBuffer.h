@@ -23,7 +23,8 @@ namespace Veritas {
                     typedef std::vector<Part> Parts;
 
                     uint32 write(const uint8* data, uint32 ammount);
-                    uint32 read(uint8* data, uint32 ammount);
+                    uint32 read(uint8* data, uint32 ammount);                    
+                    uint32 free(uint32 ammount);
 
                     uint32 getPosition() const;
                     uint32 getOccupied() const;

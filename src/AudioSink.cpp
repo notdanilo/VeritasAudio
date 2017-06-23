@@ -3,8 +3,8 @@
 using namespace Veritas;
 using namespace Audio;
 
-AudioSink::AudioSink(uint32 framerate, FORMAT format, uint32 sources)
-    : AudioNode(framerate, format)
+AudioSink::AudioSink(uint32 framerate, FORMAT format, uint8 channels, float32 timeSpan, uint32 sources)
+    : AudioNode(framerate, format, channels, timeSpan)
     , sources(sources)
 {}
 

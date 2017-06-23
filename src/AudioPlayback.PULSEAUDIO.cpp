@@ -29,11 +29,15 @@ void stream_callback(pa_stream *stream, size_t requestedBytes, void *userdata) {
     }
 }
 
-AudioPlayback::AudioPlayback(float32 timeSpan, uint32 framerate, uint8 channels, FORMAT iformat)
-    : AudioSink(framerate, iformat)
-    , AudioNode(timeSpan, framerate, iformat)
-    , channels(channels)
-    , framerate(framerate)
+AudioPlayback::AudioPlayback(uint32 framerate, FORMAT format, uint8 channels, float32 timeSpan)
+    : AudioPlayback(0, framerate, format, channels, timeSpan)
+{}
+AudioPlayback::AudioPlayback(const Data::String &deviceName, uint32 framerate, FORMAT format, uint8 channels, float32 timeSpan)
+    : AudioPlayback((const char*) deviceName.getBuffer().getData(), framerate, format, channels, timeSpan)
+{}
+AudioPlayback::AudioPlayback(const char* name, uint32 framerate, FORMAT iformat, uint8 channels, float32 timeSpan)
+    : AudioSink(framerate, iformat, channels, timeSpan)
+    , AudioNode(framerate, iformat, channels, timeSpan)
 {
     connect(ValueNode(0.0f));
     pa_sample_format_t format = PA_SAMPLE_INVALID;
@@ -100,7 +104,7 @@ AudioPlayback::AudioPlayback(float32 timeSpan, uint32 framerate, uint8 channels,
     stream_flags = (pa_stream_flags_t)(PA_STREAM_START_CORKED | PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_NOT_MONOTONIC | PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_ADJUST_LATENCY);
 
     // Connect stream to the default audio output sink
-    assert(pa_stream_connect_playback(stream, NULL, &buffer_attr, stream_flags, NULL, NULL) == 0);
+    assert(pa_stream_connect_playback(stream, name, &buffer_attr, stream_flags, NULL, NULL) == 0);
 
     // Wait for the stream to be ready
     for(;;) {

@@ -10,3 +10,6 @@
 #include "ValueNode.h"
 #include "SineGenerator.h"
 #include "Oscilloscope.h"
+
+#include "FFT.h"
+#include "SpectrumAnalyzer.h"
