@@ -7,10 +7,10 @@ using namespace Veritas;
 using namespace Audio;
 using namespace Math;
 
-SineGenerator::SineGenerator(uint32 framerate, FORMAT format)
-    : AudioNode(framerate, format)
-    , AudioSource(framerate, format)
-    , AudioSink(framerate, format)
+SineGenerator::SineGenerator(uint32 framerate, FORMAT format, float32 timespan)
+    : AudioNode(framerate, format, 1, timespan)
+    , AudioSource(framerate, format, 1, timespan)
+    , AudioSink(framerate, format, 1, timespan)
     , time(0)
 {
     connect(ValueNode(440.0));

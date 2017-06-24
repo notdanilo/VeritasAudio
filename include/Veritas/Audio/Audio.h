@@ -7,9 +7,14 @@
 #include "AudioCapture.h"
 #include "AudioPlayback.h"
 #include "AudioNode.h"
-#include "ValueNode.h"
 #include "SineGenerator.h"
 #include "Oscilloscope.h"
 
 #include "FFT.h"
 #include "SpectrumAnalyzer.h"
+
+#include "ValueNode.h"
+#include "AddNode.h"
+#include "SubNode.h"
+#include "MulNode.h"
+#include "DivNode.h"

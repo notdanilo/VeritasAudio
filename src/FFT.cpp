@@ -56,7 +56,6 @@ void FFT::read(uint8 *data, uint32 ammount) {
     Complex* complexes = (Complex*) outBuffer.getData();
 
     if (inBuffer.getOccupied() == 0) {
-
         inBuffer.write(inBuffer.getSize());
         getSource(0).read(inBuffer.getData(), inBuffer.getSize());
         outBuffer.write(outBuffer.getSize());
@@ -67,12 +66,8 @@ void FFT::read(uint8 *data, uint32 ammount) {
 
         fft(carray);
 
-//        for (uint32 i = 0; i < frames; i++)
-//            complexes[i] = carray[i];
-        for (uint32 i = 0; i < frames / 2; i++) {
-            complexes[i*2] = carray[i];
-            complexes[i*2+1] = carray[frames-i-1];
-        }
+        for (uint32 i = 0; i < frames; i++)
+            complexes[i] = carray[i];
     }
 
     inBuffer.free(inBuffer.getSize());

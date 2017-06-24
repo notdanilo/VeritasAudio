@@ -12,7 +12,7 @@ namespace Veritas {
     namespace Audio {
         class Oscilloscope : public AudioSink {
             public:
-                Oscilloscope(GPU::FrameBuffer &framebuffer, uint32 rate, FORMAT format);
+                Oscilloscope(GPU::FrameBuffer &framebuffer, uint32 rate, FORMAT format, float32 timespan = 1.0f);
 
                 void setTimeSpan(float32 timeSpan);
 

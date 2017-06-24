@@ -13,9 +13,9 @@ using namespace Programs;
 using namespace Audio;
 using Audio::Utils::CircularBuffer;
 
-Oscilloscope::Oscilloscope(FrameBuffer& framebuffer, uint32 rate, FORMAT format)
-    : AudioNode(rate, format)
-    , AudioSink(rate, format)
+Oscilloscope::Oscilloscope(FrameBuffer& framebuffer, uint32 rate, FORMAT format, float32 timespan)
+    : AudioNode(rate, format, 1, timespan)
+    , AudioSink(rate, format, 1, timespan)
     , framebuffer(framebuffer)
     , fp("precision highp float;"
         "layout(location = 0) uniform vec4 icolor;"
