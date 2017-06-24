@@ -18,3 +18,5 @@
 #include "SubNode.h"
 #include "MulNode.h"
 #include "DivNode.h"
+
+#include "FileSource.h"

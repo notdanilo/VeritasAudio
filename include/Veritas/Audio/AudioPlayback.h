@@ -13,6 +13,7 @@ namespace Veritas {
     namespace Audio {
         class AudioPlayback : public AudioSink {
             public:
+                AudioPlayback(AudioSource& source);
                 AudioPlayback(uint32 framerate, FORMAT format, uint8 channels = 1, float32 timeSpan = 1.0f);
                 AudioPlayback(const Data::String& deviceName, uint32 framerate, FORMAT format, uint8 channels = 1, float32 timeSpan = 1.0f);
                 ~AudioPlayback();

@@ -8,6 +8,7 @@ namespace Veritas {
     namespace Audio {
         class AudioSink : public virtual AudioNode {
             public:
+                AudioSink(AudioSource& source);
                 AudioSink(uint32 framerate, FORMAT format, uint8 channels = 1, float32 timeSpan = 1.0f, uint32 sources = 1);
                 virtual ~AudioSink() = default;
 
