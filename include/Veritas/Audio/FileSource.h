@@ -13,13 +13,11 @@ namespace Veritas {
                 FileSource(const Data::String& name);
                 ~FileSource();
 
-                Data::String getComments() const;
                 const float32 getDuration() const;
 
                 void read(uint8 *data, uint32 ammount);
             private:
                 float32 duration;
-                Data::String comments;
                 int current_section;
                 OggVorbis_File vf;
         };

@@ -22,11 +22,6 @@ FileSource::FileSource(const String &name)
     FILE *file = fopen((const char*) name.getBuffer().getData(), "rb");
     ov_open_callbacks(file, &vf, NULL, 0, OV_CALLBACKS_NOCLOSE);
 
-    for (char** i = ov_comment(&vf, -1)->user_comments; *i; i++) {
-        comments += *i;
-        comments += "\n";
-    }
-
     vorbis_info *vi = ov_info(&vf,-1);
     duration = ov_pcm_total(&vf,-1) / float32(getFramerate());
 }
@@ -57,3 +52,5 @@ void FileSource::read(uint8 *data, uint32 ammount) {
         }
     }
 }
+
+const float32 FileSource::getDuration() const { return duration; }
