@@ -3,6 +3,12 @@
 using namespace Veritas;
 using namespace Audio;
 
+AudioSink::AudioSink(AudioSource &source)
+    : AudioNode(source.getFramerate(), source.getFormat(), source.getChannels(), source.getTimeSpan())
+    , sources(1)
+{
+    connect(source);
+}
 AudioSink::AudioSink(uint32 framerate, FORMAT format, uint8 channels, float32 timeSpan, uint32 sources)
     : AudioNode(framerate, format, channels, timeSpan)
     , sources(sources)

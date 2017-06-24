@@ -29,6 +29,12 @@ void stream_callback(pa_stream *stream, size_t requestedBytes, void *userdata) {
     }
 }
 
+AudioPlayback::AudioPlayback(AudioSource &source)
+    : AudioPlayback(0, source.getFramerate(), source.getFormat(), source.getChannels(), source.getTimeSpan())
+{
+    connect(source);
+}
+
 AudioPlayback::AudioPlayback(uint32 framerate, FORMAT format, uint8 channels, float32 timeSpan)
     : AudioPlayback(0, framerate, format, channels, timeSpan)
 {}
@@ -42,13 +48,13 @@ AudioPlayback::AudioPlayback(const char* name, uint32 framerate, FORMAT iformat,
     connect(ValueNode(0.0f));
     pa_sample_format_t format = PA_SAMPLE_INVALID;
     switch (iformat) {
-        case UINT8: format = PA_SAMPLE_U8; break;
-        case INT16LE: format = PA_SAMPLE_S16LE; break;
-        case INT32LE: format = PA_SAMPLE_S32LE; break;
-        case INT16BE: format = PA_SAMPLE_S16BE; break;
-        case INT32BE: format = PA_SAMPLE_S32BE; break;
-        case FLOAT32LE: format = PA_SAMPLE_FLOAT32LE; break;
-        case FLOAT32BE: format = PA_SAMPLE_FLOAT32BE; break;
+//        case UINT8: format = PA_SAMPLE_U8; break;
+//        case INT16LE: format = PA_SAMPLE_S16LE; break;
+//        case INT32LE: format = PA_SAMPLE_S32LE; break;
+//        case INT16BE: format = PA_SAMPLE_S16BE; break;
+//        case INT32BE: format = PA_SAMPLE_S32BE; break;
+//        case FLOAT32LE: format = PA_SAMPLE_FLOAT32LE; break;
+//        case FLOAT32BE: format = PA_SAMPLE_FLOAT32BE; break;
         case FLOAT32: format = PA_SAMPLE_FLOAT32; break;
     }
 
