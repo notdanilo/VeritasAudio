@@ -1,16 +1,17 @@
 #pragma once
 
 #include <Veritas/Audio/AudioSource.h>
-#include <Veritas/Data/String.h>
 
 #include <vorbis/codec.h>
 #include <vorbis/vorbisfile.h>
+
+#include <cstdio>
 
 namespace Veritas {
     namespace Audio {
         class FileSource : public AudioSource {
             public:
-                FileSource(const Data::String& name);
+                FileSource(const std::string& name);
                 ~FileSource();
 
                 const float32 getDuration() const;
@@ -19,6 +20,7 @@ namespace Veritas {
             private:
                 float32 duration;
                 int current_section;
+                FILE* file;
                 OggVorbis_File vf;
         };
     }

@@ -8,6 +8,8 @@
 using namespace Veritas;
 using namespace Audio;
 
+using std::string;
+
 static void context_state_cb(pa_context* context, void* mainloop) { pa_threaded_mainloop_signal((pa_threaded_mainloop*) mainloop, 0); }
 static void stream_state_cb(pa_stream *s, void *mainloop) { pa_threaded_mainloop_signal((pa_threaded_mainloop*) mainloop, 0); }
 static void stream_success_cb(pa_stream *stream, int success, void *userdata) { return; }
@@ -38,8 +40,8 @@ AudioPlayback::AudioPlayback(AudioSource &source)
 AudioPlayback::AudioPlayback(uint32 framerate, FORMAT format, uint8 channels, float32 timeSpan)
     : AudioPlayback(0, framerate, format, channels, timeSpan)
 {}
-AudioPlayback::AudioPlayback(const Data::String &deviceName, uint32 framerate, FORMAT format, uint8 channels, float32 timeSpan)
-    : AudioPlayback((const char*) deviceName.getBuffer().getData(), framerate, format, channels, timeSpan)
+AudioPlayback::AudioPlayback(const string &deviceName, uint32 framerate, FORMAT format, uint8 channels, float32 timeSpan)
+    : AudioPlayback(deviceName.c_str(), framerate, format, channels, timeSpan)
 {}
 AudioPlayback::AudioPlayback(const char* name, uint32 framerate, FORMAT iformat, uint8 channels, float32 timeSpan)
     : AudioSink(framerate, iformat, channels, timeSpan)

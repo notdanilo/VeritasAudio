@@ -1,14 +1,19 @@
 #pragma once
 
-#include <Veritas/Data/Buffer.h>
+#include <Veritas/Definitions/Definitions.h>
 
 namespace Veritas {
     namespace Audio {
         namespace Utils {
-            class CircularBuffer : public Data::Buffer {
+            class CircularBuffer {
                 public:
                     CircularBuffer();
                     CircularBuffer(uint32 ammount);
+
+                    void setSize(uint32 size);
+                    uint32 getSize() const;
+
+                    uint8* getData() const;
 
                     class Part {
                         public:
@@ -32,6 +37,7 @@ namespace Veritas {
                     Parts write(uint32 ammount);
                     const Parts read(uint32 ammount);
                 private:
+                    std::vector<uint8> buffer;
                     uint32 position;
                     uint32 occupied;
 

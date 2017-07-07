@@ -13,7 +13,7 @@ CircularBuffer::CircularBuffer()
 {}
 
 CircularBuffer::CircularBuffer(uint32 size)
-    : Buffer(size)
+    : buffer(size)
     , position(0)
     , occupied(0)
 {}

@@ -3,7 +3,8 @@
 #include <Veritas/Definitions/Definitions.h>
 #include <Veritas/Audio/AudioSource.h>
 #include <Veritas/Audio/Utils/CircularBuffer.h>
-#include <Veritas/Data/String.h>
+
+#include <string>
 
 #include <pulse/pulseaudio.h>
 
@@ -15,7 +16,7 @@ namespace Veritas {
         class AudioCapture : public AudioSource {
             public:
                 AudioCapture(uint32 framerate, FORMAT format, uint8 channels = 1, float32 timeSpan = 1.0f);
-                AudioCapture(const Data::String& deviceName, uint32 framerate, FORMAT format, uint8 channels = 1, float32 timeSpan = 1.0f);
+                AudioCapture(const std::string& deviceName, uint32 framerate, FORMAT format, uint8 channels = 1, float32 timeSpan = 1.0f);
                 ~AudioCapture();
 
                 AudioCapture(const AudioCapture& copy) = delete;

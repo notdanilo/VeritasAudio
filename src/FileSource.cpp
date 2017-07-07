@@ -4,22 +4,33 @@
 
 using namespace Veritas;
 using namespace Audio;
-using namespace Data;
 
-AudioNode getNodeInfo(const String& name) {
-    FILE *file = fopen((const char*) name.getBuffer().getData(), "rb");
-    OggVorbis_File vf;
+using std::string;
+
+AudioNode getNodeInfo(const string& name) {
+    FILE *file = fopen(name.c_str(), "rb");
     assert(file);
-    assert(ov_open_callbacks(file, &vf, NULL, 0, OV_CALLBACKS_NOCLOSE) >= 0); // Input does not appear to be an Ogg bitstream
+    OggVorbis_File vf;
+    assert(ov_open_callbacks(file, &vf, NULL, 0, OV_CALLBACKS_NOCLOSE) >= 0); // Check if it's an Ogg bitstream
+
     vorbis_info *vi = ov_info(&vf,-1);
-    return AudioNode(vi->rate, AudioNode::FLOAT32, vi->channels, 1.0f);
+    assert(vi);
+
+    // store values before ov_clear
+    uint32 rate = vi->rate;
+    uint8 channels = vi->channels;
+
+    ov_clear(&vf);
+    fclose(file);
+
+    return AudioNode(rate, AudioNode::FLOAT32, channels, 1.0f);
 }
 
-FileSource::FileSource(const String &name)
+FileSource::FileSource(const string &name)
     : AudioNode(getNodeInfo(name))
     , AudioSource(getFramerate(), getFormat(), getChannels(), getTimeSpan())
 {
-    FILE *file = fopen((const char*) name.getBuffer().getData(), "rb");
+    file = fopen(name.c_str(), "rb");
     ov_open_callbacks(file, &vf, NULL, 0, OV_CALLBACKS_NOCLOSE);
 
     vorbis_info *vi = ov_info(&vf,-1);
@@ -27,6 +38,7 @@ FileSource::FileSource(const String &name)
 }
 
 FileSource::~FileSource() {
+    fclose(file);
     ov_clear(&vf);
 }
 

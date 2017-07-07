@@ -7,6 +7,8 @@ using namespace Veritas;
 using namespace Audio;
 using namespace Math;
 
+using std::string;
+
 #include <iostream>
 
 static void context_state_cb(pa_context* context, void* mainloop) { pa_threaded_mainloop_signal((pa_threaded_mainloop*) mainloop, 0); }
@@ -33,8 +35,8 @@ static void stream_callback(pa_stream *stream, size_t bytes, void *userdata) {
 AudioCapture::AudioCapture(uint32 framerate, FORMAT format, uint8 channels, float32 timeSpan)
     : AudioCapture(0, framerate, format, channels, timeSpan)
 {}
-AudioCapture::AudioCapture(const Data::String &deviceName, uint32 framerate, FORMAT format, uint8 channels, float32 timeSpan)
-    : AudioCapture((const char*) deviceName.getBuffer().getData(), framerate, format, channels, timeSpan)
+AudioCapture::AudioCapture(const string &deviceName, uint32 framerate, FORMAT format, uint8 channels, float32 timeSpan)
+    : AudioCapture(deviceName.c_str(), framerate, format, channels, timeSpan)
 {}
 AudioCapture::AudioCapture(const char* name, uint32 framerate, FORMAT iformat, uint8 channels, float32 timeSpan)
     : AudioNode(framerate, iformat, channels, timeSpan)

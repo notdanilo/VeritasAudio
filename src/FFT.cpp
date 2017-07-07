@@ -2,9 +2,10 @@
 #include <Veritas/Math/Math.h>
 #include <complex>
 
+#include <cstring>
+
 using namespace Veritas;
 using namespace Audio;
-using namespace Data;
 
 using vec2 = Math::vec2;
 using Complex = std::complex<float32>;

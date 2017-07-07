@@ -5,9 +5,9 @@
 #include <Veritas/Audio/AudioSink.h>
 #include <Veritas/Audio/AudioSource.h>
 
-#include <Veritas/Data/String.h>
-
 #include <pulse/pulseaudio.h>
+
+#include <string>
 
 namespace Veritas {
     namespace Audio {
@@ -15,7 +15,7 @@ namespace Veritas {
             public:
                 AudioPlayback(AudioSource& source);
                 AudioPlayback(uint32 framerate, FORMAT format, uint8 channels = 1, float32 timeSpan = 1.0f);
-                AudioPlayback(const Data::String& deviceName, uint32 framerate, FORMAT format, uint8 channels = 1, float32 timeSpan = 1.0f);
+                AudioPlayback(const std::string& deviceName, uint32 framerate, FORMAT format, uint8 channels = 1, float32 timeSpan = 1.0f);
                 ~AudioPlayback();
 
                 void read(uint8 *buffer, uint32 bytes);
